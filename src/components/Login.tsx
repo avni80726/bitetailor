@@ -30,6 +30,7 @@ function Login() {
 
       const token = loginRes.data.data.access_token;
       localStorage.setItem("token", token);
+      console.log("token",token)
 
       
       const profileRes = await axios.get("http://localhost:8055/users/me", {
@@ -40,6 +41,7 @@ function Login() {
 
       const userData = profileRes.data.data;
       const role = typeof userData.role === "object" ? userData.role.name : userData.role;
+      console.log(role)
 
       localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("userRole", role);
@@ -48,7 +50,7 @@ function Login() {
       if (role == "77466f7d-c3f9-4d40-ac4d-a7bf18477221") {
         navigate("/customer/dashboard");
       } else if (role == "aabe7f56-46f0-4ff6-8239-0bfdd0f175b9") {
-        navigate("/restaurant/onboarding");
+        navigate("/resdashboard");
       } else {
         navigate("/");
       }
@@ -101,7 +103,7 @@ function Login() {
 
         <button
           type="submit"
-          className="w-full bg-white text-black py-2 rounded font-semibold border border-black hover:bg-gray-100 transition duration-200"
+          className="w-full bg-white text-white py-2 rounded font-semibold border border-black hover:bg-gray-100 transition duration-200"
         >
           Login
         </button>

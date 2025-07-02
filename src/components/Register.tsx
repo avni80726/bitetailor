@@ -1,104 +1,66 @@
-import axios from "axios";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Register() {
   const [user, setUser] = useState({
-    email: "",
-    password: "",
-    first_name: "",
-    last_name: "",
-    reastaurant_name:"",
-    contact_number:"",
-    shop_number:""
-
-  }); 
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    user_type: '',
+  });
 
   const navigate = useNavigate();
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // ✅ Handle input and select changes
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setUser((prev) => ({
-      ...prev,
-      [name]: value
+    setUser((prevUser) => ({
+      ...prevUser,
+      [name]: value,
     }));
   };
 
-  // API CALLS
-  const registerUser = () => {
+ 
+  const registerUser = async () => { 
+    const roleId =
+      user.user_type === 'restaurant'
+        ? 'aabe7f56-46f0-4ff6-8239-0bfdd0f175b9'
+        : '77466f7d-c3f9-4d40-ac4d-a7bf18477221'; 
+    try {
+      const res = await axios.post(
+        'http://localhost:8055/users',
+        {
+          email: user.email,
+          password: user.password,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_type: user.user_type,
+          role: roleId,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    // construct payload
-    const payload = {
-      status: "active",
-      email: user.email,
-      password: user.password,
-      role: "77466f7d-c3f9-4d40-ac4d-a7bf18477221",
-      first_name: user.first_name,
-      last_name: user.last_name,
-      floor:"",
-      restaurant_timings:""
-    };
+      console.log('User created:', res.data);
 
-    axios.post("http://localhost:8055/users", payload).then(
-      (response) => {
-        console.log("Response for user registration: ", response.data);
-
-        // call signup request
-        signIn();
-      }, (error) => {
-        console.log("Error while registering user: ", error?.response);
+     
+      if (user.user_type === 'restaurant') {
+        navigate('/resdetails');
+      } else {
+        navigate('/customer/dashboard');
       }
-    );
-
+    } catch (error: any) {
+      console.error('Registration error:', error.response?.data || error.message);
+      alert('Error: ' + JSON.stringify(error.response?.data?.errors || error.message));
+    }
   };
-
-  const signIn = () => {
-
-    // construct paylaod
-    const payload = {
-      email: user.email,
-      password: user.password
-    };
-
-    axios.post("http://localhost:8055/auth/login", payload).then(
-      (response) => {
-        console.log("Response for user signin: ", response.data);
-        // TODO: access tokens and manage these locally
-        // localStorage.setItem("token", );
-
-        // call me request
-        fetchUser();
-      }, (error) => {
-        console.log("Error while signin user: ", error?.response);
-      }
-    );
-
-  };
-
-  const fetchUser = () => {
-    axios.get("http://localhost:8055/users/me", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    }).then(
-      (response) => {
-        console.log("Response for user data: ", response.data);
-        // TODO: access user data and manage these locally
-        // localStorage.setItem("token", );
-
-        // call onboard restaurant
-
-      }, (error) => {
-        console.log("Error while fetching user data: ", error?.response);
-      }
-    );
-  };
-
-  const onboardRestaurant = () => {
-    // set a isLoggedIn flag in localStorage and redirect user to dashboard
-    
-  };
-
 
   return (
     <div className="space-y-3 p-4 max-w-md mx-auto">
@@ -123,7 +85,6 @@ function Register() {
         name="email"
         placeholder="Email"
       />
-
       <input
         value={user.password}
         onChange={handleChange}
@@ -132,35 +93,17 @@ function Register() {
         placeholder="Password"
         type="password"
       />
-
-        <input
-        value={user.reastaurant_name}
+      <select
+        name="user_type"
+        value={user.user_type}
         onChange={handleChange}
         className="border p-2 w-full"
-        placeholder="reastaurant_name"
-      />
-        <input
-        value={user.contact_number}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        placeholder="contact_number"
-
-      />
-        <input
-        value={user.shop_number}
-        onChange={handleChange}
-        className="border p-2 w-full"        
-        placeholder="shop_number"
-      />
-
-      <input
-      
-        onChange={handleChange}
-        className="border p-2 w-full"        
-        placeholder="floor"
-      />
-       
-      <button  className="bg-blue-600 text-white p-2 w-full">
+      >
+        <option value="">Select User Type</option>
+        <option value="customer">Customer</option>
+        <option value="restaurant">Restaurant</option>
+      </select>
+      <button onClick={registerUser} className="bg-blue-600 text-white p-2 w-full">
         Submit
       </button>
     </div>
